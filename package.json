@@ -4,12 +4,21 @@
   "main": "index.js",
   "author": "anfankus",
   "license": "MIT",
+  "scripts": {
+    "dev": "cross-env PORT=8050 nodemon ./app.js",
+    "run": "cross-env PORT=8050 node ./app.js "
+  },
   "dependencies": {
+    "chalk": "^2.4.2",
     "koa": "^2.7.0",
     "koa-bodyparser": "^4.2.1",
     "koa-json": "^2.0.2",
-    "koa-logger": "^3.2.0",
     "koa-onerror": "^4.1.0",
-    "mysql": "^2.17.1"
+    "koa-router": "^7.4.0",
+    "mysql2": "^1.6.5"
+  },
+  "devDependencies": {
+    "cross-env": "^5.2.0",
+    "nodemon": "^1.19.1"
   }
 }

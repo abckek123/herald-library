@@ -4,9 +4,9 @@ const app = new Koa()
 const json = require('koa-json');
 const onerror = require('koa-onerror');
 const bodyParser = require('koa-bodyparser');
-const logger = require('koa-logger');
+const logger = require('./util/logger')
 
-const mainservice = require('./controller/main');
+const mainservice = require('./controller/mainController');
 // error handler
 onerror(app)
 // middleWares
@@ -14,7 +14,7 @@ app.use(bodyParser({
   enableTypes: ['json', 'form', 'text']
 }))
 app.use(json())
-app.use(logger())
+app.use(logger.koalogger)
 
 // router
 app.use(mainservice.routes(), mainservice.allowedMethods())
