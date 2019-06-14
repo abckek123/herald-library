@@ -5,6 +5,7 @@ const json = require('koa-json');
 const onerror = require('koa-onerror');
 const bodyParser = require('koa-bodyparser');
 const logger = require('./util/logger')
+const simple_verify=require('./util/simpleVerify')
 
 const mainservice = require('./controller/mainController');
 // error handler
@@ -15,6 +16,7 @@ app.use(bodyParser({
 }))
 app.use(json())
 app.use(logger.koalogger)
+app.use(simple_verify);
 
 // router
 app.use(mainservice.routes(), mainservice.allowedMethods())

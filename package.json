@@ -5,8 +5,8 @@
   "author": "anfankus",
   "license": "MIT",
   "scripts": {
-    "dev": "cross-env PORT=8050 nodemon ./app.js",
-    "run": "cross-env PORT=8050 node ./app.js "
+    "dev": "cross-env PORT=8050 nodemon ./index.js",
+    "start": "cross-env PORT=8050 node ./index.js "
   },
   "dependencies": {
     "chalk": "^2.4.2",
