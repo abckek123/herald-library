@@ -8,16 +8,10 @@ module.exports = async function (cardnum) {
         if (row.length == 0) return {};
         return {
             span: row[0]['时长'],
-            books: row.map(e => {
-                return {
-                    bookName: e['题名'],
-                    borrowTime: e['借书日期'].toLocaleString(),
-                    returnTime: e['（应）还书日期'].toLocaleString()
-                }
-            })
+            bookName: row[0]['题名'],
+            borrowTime: row[0]['借书日期'].toLocaleString(),
+            returnTime: row[0]['（应）还书日期'].toLocaleString(),
         }
-        console.log(row)
-        return row;
     }).catch(err => {
         log.log("最长借书查询失败--" + cardnum);
         console.log(err);
