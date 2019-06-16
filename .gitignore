@@ -3,3 +3,4 @@ node_modules/
 *.sql
 database-config.js
 config.js
+*.log

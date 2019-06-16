@@ -89,7 +89,7 @@ let db = {
     //常量初始化
     [db.constant.total_enter,db.constant.avg_enter]=
     await connection.execute('SELECT COUNT(一卡通) as count,AVG(进馆次数) as avg FROM check_record')
-            .then(([row]) => [row[0]['count'],row[0]['avg']])
+            .then(([row]) => [Number(row[0]['count']),Number(row[0]['avg'])])
             .catch(err => {
                 logger.err('常量 total_enter,avg_enter 初始化失败')
                 console.log(err);
@@ -105,7 +105,7 @@ let db = {
     ).then(([row]) => {
         let temp = {};
         row.forEach(each => {
-            temp[each['院系']] = each['count'];
+            temp[each['院系']] =Number(each['count']);
         })
         return temp;
     }).catch(err => {
@@ -117,7 +117,7 @@ let db = {
 
     [db.constant.total_borrow,db.constant.avg_borrow] = 
     await connection.execute('SELECT SUM(总借阅次数) as count,AVG(总借阅次数) as avg FROM _borrow_times')
-        .then(([row]) => [row[0]['count'],row[0]['avg']])
+        .then(([row]) => [Number(row[0]['count']),Number(row[0]['avg'])])
         .catch(err => {
             logger.err('常量 total_borrow,avg_borrow 初始化失败')
             console.log(err);
@@ -132,7 +132,7 @@ let db = {
     ).then(([row]) => {
         let temp = {};
         row.forEach(each => {
-            temp[each['单位']] = each['count'];
+            temp[each['单位']] = Number(each['count']);
         })
         return temp;
     }).catch(err => {
