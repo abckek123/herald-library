@@ -87,16 +87,16 @@ let db = {
     logger.log('_longest_book 创建完成');
 
     //常量初始化
-    [db.constant.total_enter,db.constant.avg_enter]=
-    await connection.execute('SELECT COUNT(一卡通) as count,AVG(进馆次数) as avg FROM check_record')
-            .then(([row]) => [Number(row[0]['count']),Number(row[0]['avg'])])
+    db.constant.avg_enter=
+    await connection.execute('SELECT AVG(进馆次数) as avg FROM check_record')
+            .then(([row]) => Number(row[0]['avg']))
             .catch(err => {
-                logger.err('常量 total_enter,avg_enter 初始化失败')
+                logger.err('常量 avg_enter 初始化失败')
                 console.log(err);
                 throw err;
             });
             
-    logger.log(`常量 total_enter,avg_enter 初始化完成:${db.constant.total_enter},${db.constant.avg_enter}`);
+    logger.log(`常量 avg_enter 初始化完成:${db.constant.avg_enter}`);
 
     db.constant.total_enter_dept = await connection.execute(`
         SELECT 院系,COUNT(DISTINCT 一卡通) as count 
@@ -106,6 +106,7 @@ let db = {
         let temp = {};
         row.forEach(each => {
             temp[each['院系']] =Number(each['count']);
+            db.constant.total_enter+=temp[each['院系']];
         })
         return temp;
     }).catch(err => {
@@ -115,15 +116,15 @@ let db = {
     })
     logger.log('常量 total_enter_dept 初始化完成');
 
-    [db.constant.total_borrow,db.constant.avg_borrow] = 
-    await connection.execute('SELECT SUM(总借阅次数) as count,AVG(总借阅次数) as avg FROM _borrow_times')
-        .then(([row]) => [Number(row[0]['count']),Number(row[0]['avg'])])
+    db.constant.avg_borrow = 
+    await connection.execute('SELECT AVG(总借阅次数) as avg FROM _borrow_times')
+        .then(([row]) => Number(row[0]['avg']))
         .catch(err => {
             logger.err('常量 total_borrow,avg_borrow 初始化失败')
             console.log(err);
             throw err;
         });
-    logger.log(`常量 total_borrow,avg_borrow 初始化完成:${db.constant.total_borrow},${db.constant.avg_borrow}`);
+    logger.log(`常量 avg_borrow 初始化完成:${db.constant.avg_borrow}`);
 
     db.constant.total_borrow_dept = await connection.execute(`
         SELECT 单位,COUNT(DISTINCT 证件号) as count 
@@ -133,6 +134,7 @@ let db = {
         let temp = {};
         row.forEach(each => {
             temp[each['单位']] = Number(each['count']);
+            db.constant.total_borrow+=temp[each['单位']];
         })
         return temp;
     }).catch(err => {

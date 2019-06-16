@@ -8,7 +8,7 @@ module.exports=async function(cardnum){
         if(row.length==0)return {};
         let data=row[0];
         return {
-            enterCount : data['总借阅次数'] ,
+            borrowCount : data['总借阅次数'] ,
             deptName: data['单位'],
             rankDept : data['院系排名'] ,
             rankAll : data['校内排名'] ,
