@@ -19,17 +19,10 @@ router.get(['/',config.location], async ({request,response}) => {
     let totalenter = await total_enter(cardnum);
     let totalborrow = await total_borrow(cardnum);
     let longestbook = await longest_book(cardnum);
-    let portrayDig = total_enter>constant.avg_enter<<1 |total_borrow>constant.avg_borrow;
-    let portray=portrayDig;
-    switch(portrayDig){
-      case 0:portray="画像:【借书少、入馆少】,待修改";break;
-      case 1:portray="画像:【借书多、入馆少】,待修改";break;
-      case 2:portray="画像:【借书少、入馆多】,待修改";break;
-      case 3:portray="画像:【借书多、入馆多】,待修改";break;
-    }
+    let portrayDig = total_enter>constant.avg_enter |total_borrow>constant.avg_borrow<<1;
     if(firstbook&&firstenter&&totalborrow&&totalenter&&longestbook){
       ret.result=true;
-      ret.data=[firstbook,firstenter,totalborrow,totalenter,longestbook,portray];
+      ret.data=[firstbook,firstenter,totalborrow,totalenter,longestbook,{category:portrayDig}];
     }
 
     response.body=ret;
