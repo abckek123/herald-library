@@ -5,17 +5,19 @@ const json = require('koa-json');
 const onerror = require('koa-onerror');
 const bodyParser = require('koa-bodyparser');
 const logger = require('./util/logger')
-const simple_verify=require('./util/simpleVerify')
+const simple_verify = require('./util/simpleVerify')
 
 const mainservice = require('./controller/mainController');
 // error handler
 onerror(app)
 // middleWares
-app.use(async (ctx,next)=>{
-  ctx.response.set({
-    'Access-Control-Allow-Origin':'127.0.0.1',
-    'Access-Control-Allow-Methods':"POST, GET"
-  })
+app.use(async (ctx, next) => {
+  if (ctx.url.indexOf("127.0.0.1") != -1) {
+    ctx.response.set({
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': "POST, GET"
+    })
+  }
   await next();
 })
 app.use(bodyParser({
