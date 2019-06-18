@@ -45,13 +45,16 @@ let db = {
     await connection.execute(`
         CREATE TABLE IF NOT EXISTS _borrow_times
         SELECT t.证件号,t.姓名,t.单位,t.ct as '总借阅次数',
-            RANK() OVER (PARTITION BY t.单位 order by t.ct DESC) as '院系排名',
-            RANK() OVER (order by t.ct DESC) AS '校内排名',
-            DENSE_RANK() OVER (order by t.ct DESC) AS '校内排名_密集'
+            RANK() OVER d as '院系排名',
+            RANK() OVER s AS '校内排名',
+            ROW_NUMBER() OVER s as '序号'
         FROM(
             SELECT 证件号,姓名,单位,COUNT(uuid) as ct
             FROM library_record
-            GROUP BY 证件号,单位) as t;`
+            GROUP BY 证件号,单位
+            ) as t
+        WINDOW s AS (order by t.ct DESC),d AS (PARTITION BY t.单位 order by t.ct DESC)
+        ORDER BY 序号`
     ).catch(err => {
         logger.err('_borrow_times 创建失败');
         console.log(err);
@@ -59,19 +62,15 @@ let db = {
     });
     logger.log('_borrow_times 创建完成');
     await connection.execute(`
-    SELECT t.证件号,t.姓名,t.单位,t.ct as '总借阅次数',
-        RANK() OVER d as '院系排名',
-        RANK() OVER s AS '校内排名',
-        ROW_NUMBER() OVER s as '序号'
-    FROM(
-        SELECT 证件号,姓名,单位,COUNT(uuid) as ct
-        FROM library_record
-        GROUP BY 证件号,单位
-        ) as t
-    WINDOW s AS (order by t.ct DESC),d AS (PARTITION BY t.单位 order by t.ct DESC)
-    ORDER BY 序号
-`
-    ).catch(err => {
+    CREATE TABLE IF NOT EXISTS _enter_times
+    SELECT t.一卡通,t.姓名,t.院系,t.进馆次数,
+    RANK() OVER d as '院系排名',
+    RANK() OVER s AS '校内排名',
+    ROW_NUMBER() OVER s as '序号'
+FROM check_record t
+WINDOW s as (order by t.进馆次数 DESC),d as (PARTITION BY t.院系 order by t.进馆次数 DESC) 
+ORDER BY 序号;`
+).catch(err => {
         logger.err('_enter_times 创建失败');
         console.log(err);
         throw err;
@@ -80,13 +79,13 @@ let db = {
 
     await connection.execute(`
         CREATE TABLE IF NOT EXISTS _longest_book
-        SELECT t.一卡通,t.姓名,t.院系,t.进馆次数,
-            RANK() OVER d as '院系排名',
-            RANK() OVER s AS '校内排名',
-            ROW_NUMBER() OVER s as '序号'
-        FROM check_record t
-        WINDOW s as (order by t.进馆次数 DESC),d as (PARTITION BY t.院系 order by t.进馆次数 DESC) 
-        ORDER BY 序号;`
+        SELECT ori.*,DATEDIFF(ori.（应）还书日期,ori.借书日期) as 时长
+        FROM library_record as ori,(
+            SELECT 证件号,MAX(DATEDIFF(（应）还书日期,借书日期)) as longest
+            FROM library_record
+            GROUP BY 证件号
+            ) as max
+        WHERE ori.证件号=max.证件号 AND DATEDIFF(ori.（应）还书日期,ori.借书日期)=max.longest;`
     ).catch(err => {
         logger.err('_longest_book 创建失败');
         console.log(err);
