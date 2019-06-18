@@ -12,7 +12,7 @@ const mainservice = require('./controller/mainController');
 onerror(app)
 // middleWares
 app.use(async (ctx, next) => {
-  if (ctx.url.indexOf("127.0.0.1") != -1) {
+  if (ctx.host.indexOf("localhost") != -1 ||ctx.host.indexOf("127.0.0.1") != -1) {
     ctx.response.set({
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': "POST, GET"
