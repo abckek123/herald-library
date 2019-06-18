@@ -19,7 +19,7 @@ router.get(['/',config.location], async ({request,response}) => {
     let totalenter = await total_enter(cardnum);
     let totalborrow = await total_borrow(cardnum);
     let longestbook = await longest_book(cardnum);
-    let portrayDig = total_enter>constant.avg_enter |total_borrow>constant.avg_borrow<<1;
+    let portrayDig = total_enter>constant.mid_enter |total_borrow>constant.mid_borrow<<1;
     if(firstbook&&firstenter&&totalborrow&&totalenter&&longestbook){
       ret.result=true;
       ret.data=[firstbook,firstenter,totalborrow,totalenter,longestbook,{category:portrayDig}];

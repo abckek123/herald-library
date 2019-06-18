@@ -6,8 +6,8 @@ let db = {
     constant: {
         total_borrow: 0,
         total_enter: 0,
-        avg_borrow: 0,
-        avg_enter: 0,
+        mid_borrow: 0,
+        mid_enter: 0,
         total_borrow_dept: {},
         total_enter_dept: {}
     }
@@ -46,7 +46,8 @@ let db = {
         CREATE TABLE IF NOT EXISTS _borrow_times
         SELECT t.证件号,t.姓名,t.单位,t.ct as '总借阅次数',
             RANK() OVER (PARTITION BY t.单位 order by t.ct DESC) as '院系排名',
-            RANK() OVER (order by t.ct DESC) AS '校内排名'
+            RANK() OVER (order by t.ct DESC) AS '校内排名',
+            DENSE_RANK() OVER (order by t.ct DESC) AS '校内排名_密集'
         FROM(
             SELECT 证件号,姓名,单位,COUNT(uuid) as ct
             FROM library_record
@@ -61,7 +62,8 @@ let db = {
         CREATE TABLE IF NOT EXISTS _enter_times
         SELECT t.一卡通,t.姓名,t.院系,t.进馆次数,
         RANK() OVER (PARTITION BY t.院系 order by t.进馆次数 DESC) as '院系排名',
-        RANK() OVER (order by t.进馆次数 DESC) AS '校内排名'
+        RANK() OVER (order by t.进馆次数 DESC) AS '校内排名',
+        DENSE_RANK() OVER (order by t.进馆次数 DESC) AS '校内排名_密集'
     FROM check_record t;`
     ).catch(err => {
         logger.err('_enter_times 创建失败');
@@ -87,16 +89,20 @@ let db = {
     logger.log('_longest_book 创建完成');
 
     //常量初始化
-    db.constant.avg_enter=
-    await connection.execute('SELECT AVG(进馆次数) as avg FROM check_record')
-            .then(([row]) => Number(row[0]['avg']))
-            .catch(err => {
-                logger.err('常量 avg_enter 初始化失败')
-                console.log(err);
-                throw err;
-            });
-            
-    logger.log(`常量 avg_enter 初始化完成:${db.constant.avg_enter}`);
+    db.constant.mid_enter = await connection.execute(`
+        SELECT 进馆次数 as mid
+        from _enter_times
+        where 校内排名_密集=(
+            SELECT round(max(校内排名_密集)/2) as 'val' 
+            from _enter_times);`)
+        .then(([row]) => Number(row[0]['mid']))
+        .catch(err => {
+            logger.err('常量 mid_enter 初始化失败')
+            console.log(err);
+            throw err;
+        });
+
+    logger.log(`常量 mid_enter 初始化完成:${db.constant.mid_enter}`);
 
     db.constant.total_enter_dept = await connection.execute(`
         SELECT 院系,COUNT(DISTINCT 一卡通) as count 
@@ -105,8 +111,8 @@ let db = {
     ).then(([row]) => {
         let temp = {};
         row.forEach(each => {
-            temp[each['院系']] =Number(each['count']);
-            db.constant.total_enter+=temp[each['院系']];
+            temp[each['院系']] = Number(each['count']);
+            db.constant.total_enter += temp[each['院系']];
         })
         return temp;
     }).catch(err => {
@@ -116,15 +122,19 @@ let db = {
     })
     logger.log('常量 total_enter_dept 初始化完成');
 
-    db.constant.avg_borrow = 
-    await connection.execute('SELECT AVG(总借阅次数) as avg FROM _borrow_times')
-        .then(([row]) => Number(row[0]['avg']))
+    db.constant.mid_borrow = await connection.execute(`
+        SELECT 总借阅次数 as mid
+        from _borrow_times
+        where 校内排名_密集=(
+            SELECT round(max(校内排名_密集)/2) 
+            from _borrow_times);`)
+        .then(([row]) => Number(row[0]['mid']))
         .catch(err => {
-            logger.err('常量 total_borrow,avg_borrow 初始化失败')
+            logger.err('常量 total_borrow,mid_borrow 初始化失败')
             console.log(err);
             throw err;
         });
-    logger.log(`常量 avg_borrow 初始化完成:${db.constant.avg_borrow}`);
+    logger.log(`常量 mid_borrow 初始化完成:${db.constant.mid_borrow}`);
 
     db.constant.total_borrow_dept = await connection.execute(`
         SELECT 单位,COUNT(DISTINCT 证件号) as count 
@@ -134,7 +144,7 @@ let db = {
         let temp = {};
         row.forEach(each => {
             temp[each['单位']] = Number(each['count']);
-            db.constant.total_borrow+=temp[each['单位']];
+            db.constant.total_borrow += temp[each['单位']];
         })
         return temp;
     }).catch(err => {
