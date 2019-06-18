@@ -12,10 +12,10 @@ const mainservice = require('./controller/mainController');
 onerror(app)
 // middleWares
 app.use(async (ctx,next)=>{
-  ctx.response.header={
+  ctx.response.set({
     'Access-Control-Allow-Origin':'127.0.0.1',
     'Access-Control-Allow-Methods':"POST, GET"
-  }
+  })
   await next();
 })
 app.use(bodyParser({
