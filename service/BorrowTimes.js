@@ -1,4 +1,4 @@
-const db = require("../database/mainDatabase");
+const {db} = require("../database/mainDatabase");
 const log = require("../util/logger");
 
 const SQL="SELECT * FROM  _borrow_times WHERE 证件号=?"

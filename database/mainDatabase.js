@@ -10,7 +10,17 @@ let db = {
         mid_enter: 0,
         total_borrow_dept: {},
         total_enter_dept: {}
-    }
+    },
+};
+let _execute=mysql.PromiseConnection.prototype.execute;
+mysql.PromiseConnection.prototype.execute=async function(query, params){
+    return await _execute.call(db.connection,query,params)
+        .catch(async err=>{
+            if(err.message.includes('closed')){
+                await reconnect();
+                return await _execute.call(db.connection,query,params);
+            }
+        })
 };
 (async function () {
     db.connection = await mysql.createConnection({
@@ -64,13 +74,13 @@ let db = {
     await connection.execute(`
     CREATE TABLE IF NOT EXISTS _enter_times
     SELECT t.一卡通,t.姓名,t.院系,t.进馆次数,
-    RANK() OVER d as '院系排名',
-    RANK() OVER s AS '校内排名',
-    ROW_NUMBER() OVER s as '序号'
-FROM check_record t
-WINDOW s as (order by t.进馆次数 DESC),d as (PARTITION BY t.院系 order by t.进馆次数 DESC) 
-ORDER BY 序号;`
-).catch(err => {
+        RANK() OVER d as '院系排名',
+        RANK() OVER s AS '校内排名',
+        ROW_NUMBER() OVER s as '序号'
+    FROM check_record t
+    WINDOW s as (order by t.进馆次数 DESC),d as (PARTITION BY t.院系 order by t.进馆次数 DESC) 
+    ORDER BY 序号;`
+    ).catch(err => {
         logger.err('_enter_times 创建失败');
         console.log(err);
         throw err;
@@ -163,5 +173,18 @@ ORDER BY 序号;`
     logger.log('数据库初始化完成');
     logger.log('服务开始');
 })()
-
-module.exports = db;
+async function reconnect(){
+    logger.log("数据库重新连接...");
+    db.connection = await mysql.createConnection({
+        host: config.host,
+        user: config.user,
+        password: config.password,
+        port: config.port,
+        database: config.database
+    }).catch(err => {
+        logger.err('数据库连接失败');
+        console.log(err.stack);
+        throw err;
+    });
+}
+module.exports = {db,reconnect};

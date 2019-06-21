@@ -1,4 +1,4 @@
-const db = require("../database/mainDatabase");
+const {db} = require("../database/mainDatabase");
 const log = require("../util/logger");
 
 const SQL="SELECT * FROM  _enter_times WHERE 一卡通=?"

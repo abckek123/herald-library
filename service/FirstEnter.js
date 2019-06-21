@@ -1,4 +1,4 @@
-const db = require("../database/mainDatabase");
+const {db} = require("../database/mainDatabase");
 const log = require("../util/logger");
 
 const SQL="SELECT 第一次进馆 FROM  check_record WHERE 一卡通=?"

@@ -1,5 +1,5 @@
 const router = require('koa-router')()
-const constant=require('../database/mainDatabase').constant;
+const constant=require('../database/mainDatabase').db.constant;
 const config = require('../config')
 const first_book = require('../service/FirstBook')
 const first_enter =require('../service/FirstEnter')
